@@ -726,4 +726,130 @@
       fileInfo.textContent = "अभी कोई मीडिया चुना नहीं गया।";
       setStatus("");
       setPreviewState("प्रीव्यू तैयार है। मीडिया अपलोड करें।");
-      updateTickerVisibility(
+      updateTickerVisibility();
+    }
+
+    function showImage(file) {
+      revokeObjectUrl();
+      currentObjectUrl = URL.createObjectURL(file);
+      currentMediaType = "image";
+
+      imagePreview.src = currentObjectUrl;
+      imagePreview.alt = file.name || "अपलोड की गई फोटो";
+      imagePreview.style.display = "block";
+      videoPreview.style.display = "none";
+      placeholder.style.display = "none";
+      applyObjectFit();
+
+      fileInfo.textContent = `${file.name} · ${formatBytes(file.size)} · फोटो`;
+      setStatus("फोटो सफलतापूर्वक लोड हो गई है।");
+      setPreviewState("फोटो 9:16 प्रीव्यू में दिखाई जा रही है।");
+      updateTickerVisibility();
+    }
+
+    function showVideo(file) {
+      revokeObjectUrl();
+      currentObjectUrl = URL.createObjectURL(file);
+      currentMediaType = "video";
+
+      videoPreview.src = currentObjectUrl;
+      videoPreview.style.display = "block";
+      imagePreview.style.display = "none";
+      placeholder.style.display = "none";
+      applyObjectFit();
+
+      fileInfo.textContent = `${file.name} · ${formatBytes(file.size)} · वीडियो`;
+      setStatus("वीडियो सफलतापूर्वक लोड हो गया है।");
+      setPreviewState("वीडियो 9:16 प्रीव्यू में तैयार है।");
+      updateTickerVisibility();
+    }
+
+    function handleMediaSelection(file) {
+      if (!file) {
+        resetPreview();
+        return;
+      }
+
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+
+      if (!isImage && !isVideo) {
+        resetPreview();
+        setStatus("यह फ़ाइल image या video नहीं है। दूसरी फ़ाइल चुनें।");
+        setPreviewState("अमान्य मीडिया प्रकार।");
+        return;
+      }
+
+      if (isImage) {
+        showImage(file);
+      } else {
+        showVideo(file);
+      }
+    }
+
+    async function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement) {
+          await previewFrame.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        setStatus("फुल स्क्रीन इस ब्राउज़र में उपलब्ध नहीं है।");
+      }
+    }
+
+    // ===== EVENTS =====
+    mediaInput.addEventListener("change", () => {
+      const [file] = mediaInput.files || [];
+      handleMediaSelection(file);
+    });
+
+    fitButton.addEventListener("click", () => {
+      objectFitMode = "cover";
+      applyObjectFit();
+      setStatus("फ्रेम भरें मोड सक्रिय है।");
+    });
+
+    containButton.addEventListener("click", () => {
+      objectFitMode = "contain";
+      applyObjectFit();
+      setStatus("पूरा दिखाएँ मोड सक्रिय है।");
+    });
+
+    fullscreenButton.addEventListener("click", toggleFullscreen);
+    removeButton.addEventListener("click", resetPreview);
+
+    tickerTextInput.addEventListener("input", updateTickerText);
+    tickerSpeedInput.addEventListener("input", updateTickerSpeed);
+    tickerFontSizeInput.addEventListener("input", updateTickerFontSize);
+    tickerBackgroundInput.addEventListener("input", updateTickerBackground);
+    tickerTextColorInput.addEventListener("input", updateTickerTextColor);
+    tickerBoldInput.addEventListener("change", updateTickerBold);
+
+    tickerToggleButton.addEventListener("click", () => {
+      tickerEnabled = !tickerEnabled;
+      updateTickerVisibility();
+    });
+
+    tickerPauseButton.addEventListener("click", () => {
+      tickerPaused = !tickerPaused;
+      updateTickerVisibility();
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      fullscreenButton.textContent = document.fullscreenElement ? "⛶ फुल स्क्रीन बंद करें" : "⛶ फुल स्क्रीन";
+    });
+
+    // ===== INITIALIZATION =====
+    updateTickerText();
+    updateTickerSpeed();
+    updateTickerFontSize();
+    updateTickerBackground();
+    updateTickerTextColor();
+    updateTickerBold();
+    applyObjectFit();
+    resetPreview();
+  </script>
+</body>
+</html>
